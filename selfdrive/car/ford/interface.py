@@ -96,7 +96,7 @@ class CarInterface(CarInterfaceBase):
                                                                          tire_stiffness_factor=tire_stiffness_factor)
 
     ret.steerControlType = car.CarParams.SteerControlType.angle
-    ret.openpilotLongitudinalControl = True
+    ret.openpilotLongitudinalControl = False
 
     return ret
 
