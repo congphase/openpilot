@@ -45,7 +45,7 @@ class CarState(CarStateBase):
     self.cruise_mode = cp.vl["ACCDATA_3"]['AccMemEnbl_B_RqDrv']
     ret.stockFcw = cp.vl["ACCDATA_3"]['FcwVisblWarn_B_Rq'] !=0
     ret.stockAeb = self.cruise_mode !=0 and ret.cruiseState.enabled and ret.stockFcw
-    self.engineRPM = cp.vl["EngineData_14"]['EngAout_N_Actl'] 
+    #self.engineRPM = cp.vl["EngineData_14"]['EngAout_N_Actl'] 
     #Gear Shifter
     gear = cp.vl["TransGearData"]['GearLvrPos_D_Actl']
     if gear == 0:
