@@ -27,7 +27,7 @@ class CarState(CarStateBase):
     ret.gas = cp.vl["EngineData_14"]['ApedPosScal_Pc_Actl'] / 100.
     ret.gasPressed = ret.gas > 1e-6
     ret.brakePressed = cp.vl["Cruise_Status"]['Brake_Drv_Appl'] == 2
-    ret.brakeLights = bool(cp.vl["BCM_to_HS_Body"]['Brake_Lights'])
+    #ret.brakeLights = bool(cp.vl["BCM_to_HS_Body"]['Brake_Lights'])
     ret.genericToggle = bool(cp.vl["Steering_Buttons"]['Dist_Incr'])
     self.latLimit = cp_cam.vl["Lane_Keep_Assist_Status"]['LatCtlLim_D_Stat']
     self.lkas_state = cp_cam.vl["Lane_Keep_Assist_Status"]['LaActAvail_D_Actl']
