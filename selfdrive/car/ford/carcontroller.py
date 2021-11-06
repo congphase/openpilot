@@ -35,6 +35,7 @@ def actuator_hystereses(brake, braking, brake_steady, v_ego, car_fingerprint):
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.packer = CANPacker(dbc_name)
+    self.enable_camera = True
     self.enabled_last = False
     self.main_on_last = False
     self.vehicle_model = VM
