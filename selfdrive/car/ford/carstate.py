@@ -139,20 +139,5 @@ class CarState(CarStateBase):
       ("Set_Me_X30", "Lane_Keep_Assist_Ui", 0.),
     ]
 
-    checks = [
-      "EngVehicleSpThrottle2",
-      "Steering_Buttons",
-      "EngineData_14",
-      "Cruise_Status",
-      "BCM_to_HS_Body",
-      "Side_Detect_L_Stat",
-      "Side_Detect_R_Stat",
-      "ACCDATA_3",
-      "RCMStatusMessage2_FD1",
-      "TransGearData",
-      "Doors",
-      "BrakeSysFeatures",
-      "BrakeSnData_5",
-      "WheelSpeed",
-    ] 
+    checks = [] 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2, False)
