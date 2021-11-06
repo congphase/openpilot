@@ -1,13 +1,36 @@
-import math
 from cereal import car
+from common.numpy_fast import interp, clip
 from selfdrive.car import make_can_msg
-from selfdrive.car.ford.fordcan import create_steer_command, create_lkas_ui, spam_cancel_button
+from selfdrive.car.ford.fordcan import create_steer_command, create_speed_command, create_speed_command2, create_lkas_ui, create_accdata, create_accdata2, create_accdata3, spam_cancel_button
+from selfdrive.car.ford.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
+from selfdrive.config import Conversions as CV
 
-VisualAlert = car.CarControl.HUDControl.VisualAlert
-
-MAX_STEER_DELTA = 1
+MAX_STEER_DELTA = 0.2
 TOGGLE_DEBUG = False
+COUNTER_MAX = 7
+
+def actuator_hystereses(brake, braking, brake_steady, v_ego, car_fingerprint):
+  # hyst params
+  brake_hyst_on = 0.02     # to activate brakes exceed this value
+  brake_hyst_off = 0.005                     # to deactivate brakes below this value
+  brake_hyst_gap = 0.01                      # don't change brake command for small oscillations within this value
+
+  #*** hysteresis logic to avoid brake blinking. go above 0.1 to trigger
+  if (brake < brake_hyst_on and not braking) or brake < brake_hyst_off:
+    brake = 0.
+  braking = brake > 0.
+
+  # for small brake oscillations within brake_hyst_gap, don't change the brake command
+  if brake == 0.:
+    brake_steady = 0.
+  elif brake > brake_steady + brake_hyst_gap:
+    brake_steady = brake - brake_hyst_gap
+  elif brake < brake_steady - brake_hyst_gap:
+    brake_steady = brake + brake_hyst_gap
+  brake = brake_steady
+
+  return brake, braking, brake_steady
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -17,70 +40,123 @@ class CarController():
     self.vehicle_model = VM
     self.generic_toggle_last = 0
     self.steer_alert_last = False
-    self.lkas_action = 0
-
-  def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
-
+    self.braking = False
+    self.brake_steady = 0.
+    self.brake_last = 0.
+    self.apply_brake_last = 0
+    self.lastAngle = 0
+    self.angleReq = 0
+    self.sappState = 0
+    self.acc_decel_command = 0
+    self.desiredSpeed = 20
+    self.stopStat = 0
+    self.steerAllowed = False
+    self.apaCntr = 0
+    
+  def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel, left_line, right_line, lead, left_lane_depart, right_lane_depart):
+  
+    frame_step = CarControllerParams.FRAME_STEP
+    
     can_sends = []
-    steer_alert = visual_alert in [VisualAlert.steerRequired, VisualAlert.ldw]
-
-    apply_steer = actuators.steer
-
-    if pcm_cancel:
-      #print "CANCELING!!!!"
-      can_sends.append(spam_cancel_button(self.packer))
-
-    if (frame % 3) == 0:
-
-      curvature = self.vehicle_model.calc_curvature(actuators.steeringAngleDeg*math.pi/180., CS.out.vEgo)
-
-      # The use of the toggle below is handy for trying out the various LKAS modes
-      if TOGGLE_DEBUG:
-        self.lkas_action += int(CS.out.genericToggle and not self.generic_toggle_last)
-        self.lkas_action &= 0xf
+    steer_alert = visual_alert == car.CarControl.HUDControl.VisualAlert.steerRequired
+    apply_steer = actuators.steeringAngleDeg
+    if self.enable_camera:
+      if not self.steerAllowed:
+        self.apaCntr = 0
+      if enabled:
+        self.steerAllowed = True
       else:
-        self.lkas_action = 5   # 4 and 5 seem the best. 8 and 9 seem to aggressive and laggy
-
-      can_sends.append(create_steer_command(self.packer, apply_steer, enabled,
-                                            CS.lkas_state, CS.out.steeringAngleDeg, curvature, self.lkas_action))
-      self.generic_toggle_last = CS.out.genericToggle
-
-    if (frame % 100) == 0:
-
-      can_sends.append(make_can_msg(973, b'\x00\x00\x00\x00\x00\x00\x00\x00', 0))
-      #can_sends.append(make_can_msg(984, b'\x00\x00\x00\x00\x80\x45\x60\x30', 0))
-
-    if (frame % 100) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or \
-       (self.steer_alert_last != steer_alert):
-      can_sends.append(create_lkas_ui(self.packer, CS.out.cruiseState.available, enabled, steer_alert))
-
-    if (frame % 200) == 0:
-      can_sends.append(make_can_msg(1875, b'\x80\xb0\x55\x55\x78\x90\x00\x00', 1))
-
-    if (frame % 10) == 0:
-
-      can_sends.append(make_can_msg(1648, b'\x00\x00\x00\x40\x00\x00\x50\x00', 1))
-      can_sends.append(make_can_msg(1649, b'\x10\x10\xf1\x70\x04\x00\x00\x00', 1))
-
-      can_sends.append(make_can_msg(1664, b'\x00\x00\x03\xe8\x00\x01\xa9\xb2', 1))
-      can_sends.append(make_can_msg(1674, b'\x08\x00\x00\xff\x0c\xfb\x6a\x08', 1))
-      can_sends.append(make_can_msg(1675, b'\x00\x00\x3b\x60\x37\x00\x00\x00', 1))
-      can_sends.append(make_can_msg(1690, b'\x70\x00\x00\x55\x86\x1c\xe0\x00', 1))
-
-      can_sends.append(make_can_msg(1910, b'\x06\x4b\x06\x4b\x42\xd3\x11\x30', 1))
-      can_sends.append(make_can_msg(1911, b'\x48\x53\x37\x54\x48\x53\x37\x54', 1))
-      can_sends.append(make_can_msg(1912, b'\x31\x34\x47\x30\x38\x31\x43\x42', 1))
-      can_sends.append(make_can_msg(1913, b'\x31\x34\x47\x30\x38\x32\x43\x42', 1))
-      can_sends.append(make_can_msg(1969, b'\xf4\x40\x00\x00\x00\x00\x00\x00', 1))
-      can_sends.append(make_can_msg(1971, b'\x0b\xc0\x00\x00\x00\x00\x00\x00', 1))
-
-    static_msgs = range(1653, 1658)
-    for addr in static_msgs:
-      cnt = (frame % 10) + 1
-      can_sends.append(make_can_msg(addr, (cnt << 4).to_bytes(1, 'little') + b'\x00\x00\x00\x00\x00\x00\x00', 1))
-
-    self.enabled_last = enabled
-    self.main_on_last = CS.out.cruiseState.available
-    self.steer_alert_last = steer_alert
+        self.steerAllowed = False
+      if CS.epsAssistLimited:
+        print("PSCM Assist Limited")
+      #op Long (Buggy)
+      if (frame % 2) == 0:
+        if CS.CP.openpilotLongitudinalControl:
+          brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.out.vEgo, CS.CP.carFingerprint)
+          self.brake_last = brake
+          apply_gas = actuators.gas * 5
+          apply_brake = self.brake_last * -20
+          if apply_brake <= -0.08:
+            self.acc_decel_command = 1
+          else:
+            self.acc_decel_command = 0
+          print("Brake Actuator:", actuators.brake, "Gas Actuator:", actuators.gas, "Clipped Brake:", apply_brake, "Clipped Gas:", apply_gas)
+          can_sends.append(create_accdata(self.packer, enabled, apply_gas, apply_brake, self.acc_decel_command, self.desiredSpeed, self.stopStat))
+          can_sends.append(create_accdata2(self.packer, enabled, frame, 0, 0, 0, 0, 0))
+          can_sends.append(create_accdata3(self.packer, enabled, 1, 3, lead, 2))
+          self.apply_brake_last = apply_brake
+      if pcm_cancel:
+       #print("CANCELING!!!!")
+        can_sends.append(spam_cancel_button(self.packer))
+      if (frame % 1) == 0:
+        if self.steerAllowed:
+          self.apaCntr += 1
+        self.main_on_last = CS.out.cruiseState.available
+        #SAPP Handshake
+      if (frame % 2) == 0:
+        if CS.sappHandshake in [1,2]:
+          if self.steerAllowed:
+            self.sappState = 2
+            self.angleReq = 1
+          else:
+            self.sappState = 1
+            self.angleReq = 0
+        else:
+          self.sappState = 1
+          self.angleReq = 0
+        #Speed spoofy bois
+        if self.steerAllowed:
+          speed = 0
+        else:
+          speed = CS.vehSpeed
+        can_sends.append(create_speed_command(self.packer, enabled, frame, speed, CS.out.gearShifter, frame_step))
+        can_sends.append(create_speed_command2(self.packer, enabled, frame, speed, frame_step))
+      #Angle Limits
+      if (frame % 2) == 0:
+        angle_lim = interp(CS.out.vEgo, CarControllerParams.ANGLE_MAX_BP, CarControllerParams.ANGLE_MAX_V)
+        apply_steer = clip(apply_steer, -angle_lim, angle_lim)
+        if self.steerAllowed:
+          if self.lastAngle * apply_steer > 0. and abs(apply_steer) > abs(self.lastAngle):
+            angle_rate_lim = interp(CS.out.vEgo, CarControllerParams.ANGLE_DELTA_BP, CarControllerParams.ANGLE_DELTA_V)
+          else:
+            angle_rate_lim = interp(CS.out.vEgo, CarControllerParams.ANGLE_DELTA_BP, CarControllerParams.ANGLE_DELTA_VU)
+          
+          apply_steer = clip(apply_steer, self.lastAngle - angle_rate_lim, self.lastAngle + angle_rate_lim) 
+        else:
+          apply_steer = CS.out.steeringAngleDeg
+        self.lastAngle = apply_steer
+        can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
+        self.generic_toggle_last = CS.out.genericToggle
+      if (frame % 1) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or (self.steer_alert_last != steer_alert):
+        lines = 0
+        if left_line and right_line:
+          if left_lane_depart:
+            lines = 9
+          elif right_lane_depart:
+            lines = 21
+          else:
+            lines = 6
+        elif left_line and not right_line:
+          if left_lane_depart:
+            lines = 14
+          else:
+            lines = 11
+        elif right_line and not left_line:
+          if right_lane_depart:
+            lines = 22
+          else:
+            lines = 7
+        else:
+          lines = 12  
+                
+        if steer_alert:
+          self.steer_chime = 1
+          self.daschime = 0
+        else:
+          self.steer_chime = 0
+          self.daschime = 0
+        can_sends.append(create_lkas_ui(self.packer, CS.out.cruiseState.available, enabled, self.steer_chime, CS.ipmaHeater, CS.ahbcCommanded, CS.ahbcRamping, CS.ipmaConfig, CS.ipmaNo, CS.ipmaStats, CS.persipma, CS.dasdsply, CS.x30, self.daschime, lines))
+        self.enabled_last = enabled                         
+      self.steer_alert_last = steer_alert
 
     return can_sends
