@@ -8,8 +8,6 @@ from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness,
 from selfdrive.car.interfaces import CarInterfaceBase
 from common.params import Params
 
-apaAcknowledged = True
-
 class CarInterface(CarInterfaceBase):
 
   @staticmethod
@@ -114,13 +112,6 @@ class CarInterface(CarInterfaceBase):
 
     # events
     events = self.create_common_events(ret)
-    if not apaAcknowledged:
-      events.add(car.CarEvent.EventName.apaNotAcknowledged)
-    if self.CC.enabled_last:
-      if self.CS.sappHandshake == 0 or self.CS.sappHandshake == 1:
-        events.add(car.CarEvent.EventName.pscmHandshaking)
-      if self.CS.sappHandshake == 3:
-        events.add(car.CarEvent.EventName.pscmLostHandshake)
     ret.events = events.to_msg()
 
     self.CS.out = ret.as_reader()
