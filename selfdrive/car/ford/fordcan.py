@@ -14,7 +14,7 @@ def fordchecksum(cnt, speed):
 
 def create_steer_command(packer, angle_cmd, enabled, action, angleReq):
   """Creates a CAN message for the Ford Steer Command."""
-  print("ParkAid_Data: angle " + str(angle_cmd) + " action " + str(action) + " req " + str(angleReq))
+  print("ParkAid_Data: enable " + str(enabled) + " angle " + str(angle_cmd) + " action " + str(action) + " req " + str(angleReq))
   
   values = {
     "ApaSys_D_Stat": action,
@@ -23,10 +23,10 @@ def create_steer_command(packer, angle_cmd, enabled, action, angleReq):
   }
   return packer.make_can_msg("ParkAid_Data", 2, values)
 
-def create_steer_command_lka(packer, angle_cmd, action, alert):
+def create_steer_command_lka(packer, angle_cmd, enabled, action, alert):
   """Creates a CAN message for the Ford Steer Command."""
 
-  print("LKA_Control: angle " + str(angle_cmd) + " action " + str(action) + " alert " + str(alert))
+  print("LKA_Control: enable " + str(enabled) + " angle " + str(angle_cmd) + " action " + str(action) + " alert " + str(alert))
 
   values = {
     "Lkas_Action": action,
