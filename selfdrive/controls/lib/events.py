@@ -577,28 +577,6 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
                               duration_hud_alert=0.),
   },
 
-  EventName.pscmHandshaking: {
-    ET.WARNING: Alert(
-      "TAKE CONTROL",
-      "PSCM is handshaking. Please wait...",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 3.),
-  },
-  EventName.pscmHandshaked: {
-    ET.WARNING: Alert(
-      "PSCM has successfully handshaked",
-      "",
-      AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .0, .0, .1),
-  },
-  EventName.pscmLostHandshake: {
-    ET.WARNING: Alert(
-      "TAKE CONTROL",
-      "PSCM APA Handshake Lost",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, .4, 2., 3.),
-  },
-
   EventName.outOfSpace: {
     ET.PERMANENT: Alert(
       "Out of Storage",
