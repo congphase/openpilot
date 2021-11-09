@@ -1,7 +1,7 @@
 from cereal import car
 from common.numpy_fast import interp, clip
 from selfdrive.car import make_can_msg
-from selfdrive.car.ford.fordcan import create_steer_command, create_speed_command, create_speed_command2, create_lkas_ui, create_accdata, create_accdata2, create_accdata3, spam_cancel_button
+from selfdrive.car.ford.fordcan import create_steer_command, create_steer_command_lka, create_speed_command, create_speed_command2, create_lkas_ui, create_accdata, create_accdata2, create_accdata3, create_steer_command_lka, spam_cancel_button
 from selfdrive.car.ford.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -126,7 +126,13 @@ class CarController():
         else:
           apply_steer = CS.out.steeringAngleDeg
         self.lastAngle = apply_steer
-        can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
+        # can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
+        action = 5
+        if left_lane_depart or right_lane_depart:
+          alert = 3
+        else:
+          alert = 15
+        can_sends.append(create_steer_command_lka(self.packer, apply_steer, action, alert))
         self.generic_toggle_last = CS.out.genericToggle
       if (frame % 1) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or (self.steer_alert_last != steer_alert):
         lines = 0
