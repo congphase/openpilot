@@ -1,6 +1,7 @@
 from common.numpy_fast import clip
 from selfdrive.car.ford.values import MAX_ANGLE
 from cereal import car
+import math
 
 def fordchecksum(cnt, speed):
   # Checksum is 256 - cnt - speed - 4 with bitwise shifting and rounding on the speed.
@@ -19,11 +20,11 @@ def create_steer_command(packer, angle_cmd, enabled, action, angleReq):
   values = {
     "ApaSys_D_Stat": action,
     "EPASExtAngleStatReq": angleReq,
-    "ExtSteeringAngleReq2": angle_cmd,
+    "ExtSteeringAngleReq2": angle_cmd, # degree
   }
   return packer.make_can_msg("ParkAid_Data", 2, values)
 
-def create_steer_command_lka(packer, angle_cmd, enabled, action, alert):
+def create_steer_command_lka(packer, angle_cmd, enabled, action, alert, curvature):
   """Creates a CAN message for the Ford Steer Command."""
 
   print("LKA_Control: enable " + str(enabled) + " angle " + str(angle_cmd) + " action " + str(action) + " alert " + str(alert))
@@ -31,8 +32,8 @@ def create_steer_command_lka(packer, angle_cmd, enabled, action, alert):
   values = {
     "Lkas_Action": action,
     "Lkas_Alert": alert,
-    "Lane_Curvature": 0, # is it just for debug?
-    "Steer_Angle_Req": angle_cmd
+    "Lane_Curvature": curvature, # is it just for debug?
+    "Steer_Angle_Req": angle_cmd # milliradian
   }
   return packer.make_can_msg("Lane_Keep_Assist_Control", 0, values)
 

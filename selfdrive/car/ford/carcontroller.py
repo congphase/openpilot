@@ -5,6 +5,7 @@ from selfdrive.car.ford.fordcan import create_steer_command, create_steer_comman
 from selfdrive.car.ford.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
+import math
 
 MAX_STEER_DELTA = 0.2
 TOGGLE_DEBUG = False
@@ -123,16 +124,19 @@ class CarController():
             angle_rate_lim = interp(CS.out.vEgo, CarControllerParams.ANGLE_DELTA_BP, CarControllerParams.ANGLE_DELTA_VU)
           
           apply_steer = clip(apply_steer, self.lastAngle - angle_rate_lim, self.lastAngle + angle_rate_lim) 
+          action = 5
         else:
           apply_steer = CS.out.steeringAngleDeg
+          action = 7
         self.lastAngle = apply_steer
         # can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
-        action = 5
         if left_lane_depart or right_lane_depart:
           alert = 3
         else:
           alert = 15
-        can_sends.append(create_steer_command_lka(self.packer, apply_steer, enabled, action, alert))
+        apply_steer_mrad = math.radians(apply_steer) * 1000
+        curvature = self.vehicle_model.calc_curvature(apply_steer_mrad, CS.out.vEgo)
+        can_sends.append(create_steer_command_lka(self.packer, apply_steer_mrad, enabled, action, alert, curvature))
         self.generic_toggle_last = CS.out.genericToggle
       if (frame % 1) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or (self.steer_alert_last != steer_alert):
         lines = 0
