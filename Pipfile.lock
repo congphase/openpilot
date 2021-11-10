@@ -2245,7 +2245,7 @@
                 "sha256:502d9c946890c8dcbc165551eaaf1f1e36302a028cc589626ae7a75e3ea40a95",
                 "sha256:8d2e07fef079029096b815286b8c0a4c28aac021c4cf7b4cad31b1402d406f3b"
             ],
-            "version": "==0.8.3"
+            "version": "==0.8.2"
         },
         "lazy-object-proxy": {
             "hashes": [
@@ -3019,7 +3019,7 @@
                 "sha256:f6d0ea74b97a487e1f491c75386d494ecd573851af4e08090eacfa707ba43428"
             ],
             "index": "pypi",
-            "version": "==2.0.0.dev8"
+            "version": "==2.0.0"
         },
         "pygments": {
             "hashes": [
