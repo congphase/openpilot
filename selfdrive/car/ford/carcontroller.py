@@ -11,11 +11,24 @@ MAX_STEER_DELTA = 0.2
 TOGGLE_DEBUG = False
 COUNTER_MAX = 7
 
-def actuator_hystereses(brake, braking, brake_steady, v_ego, car_fingerprint):
+def compute_gb(accel, speed):
+  creep_brake = 0.0
+  creep_speed = 2.3
+  creep_brake_value = 0.15
+  if speed < creep_speed:
+    creep_brake = (creep_speed - speed) / creep_speed * creep_brake_value
+  gb = float(accel) / 4.8 - creep_brake
+  return clip(gb, 0.0, 1.0), clip(-gb, 0.0, 1.0)
+
+
+def compute_gas_brake(accel, speed):
+  return compute_gb(accel, speed)
+
+def actuator_hystereses(brake, braking, brake_steady):
   # hyst params
   brake_hyst_on = 0.02     # to activate brakes exceed this value
-  brake_hyst_off = 0.005                     # to deactivate brakes below this value
-  brake_hyst_gap = 0.01                      # don't change brake command for small oscillations within this value
+  brake_hyst_off = 0.005   # to deactivate brakes below this value
+  brake_hyst_gap = 0.01    # don't change brake command for small oscillations within this value
 
   #*** hysteresis logic to avoid brake blinking. go above 0.1 to trigger
   if (brake < brake_hyst_on and not braking) or brake < brake_hyst_off:
@@ -74,15 +87,18 @@ class CarController():
       #op Long (Buggy)
       if (frame % 2) == 0:
         if CS.CP.openpilotLongitudinalControl:
-          brake, self.braking, self.brake_steady = actuator_hystereses(actuators.brake, self.braking, self.brake_steady, CS.out.vEgo, CS.CP.carFingerprint)
+
+          actuator_gas, actuator_brake = compute_gas_brake(actuators.accel, CS.out.vEgo)
+
+          brake, self.braking, self.brake_steady = actuator_hystereses(actuator_brake, self.braking, self.brake_steady)
           self.brake_last = brake
-          apply_gas = actuators.gas * 5
+          apply_gas = actuator_gas * 5
           apply_brake = self.brake_last * -20
           if apply_brake <= -0.08:
             self.acc_decel_command = 1
           else:
             self.acc_decel_command = 0
-          print("Brake Actuator:", actuators.brake, "Gas Actuator:", actuators.gas, "Clipped Brake:", apply_brake, "Clipped Gas:", apply_gas)
+          print("Brake Actuator:", brake, "Gas Actuator:", actuator_gas, "Clipped Brake:", apply_brake, "Clipped Gas:", apply_gas)
           can_sends.append(create_accdata(self.packer, enabled, apply_gas, apply_brake, self.acc_decel_command, self.desiredSpeed, self.stopStat))
           can_sends.append(create_accdata2(self.packer, enabled, frame, 0, 0, 0, 0, 0))
           can_sends.append(create_accdata3(self.packer, enabled, 1, 3, lead, 2))
