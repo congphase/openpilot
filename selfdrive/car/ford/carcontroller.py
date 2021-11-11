@@ -145,7 +145,7 @@ class CarController():
         self.lastAngle = apply_steer
         
         # Use ParkAid commands
-        can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
+        # can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
 
         # Use LKA commands
         apply_steer_mrad = math.radians(apply_steer) * 1000
