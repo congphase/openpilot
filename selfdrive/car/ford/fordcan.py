@@ -27,7 +27,7 @@ def create_steer_command(packer, angle_cmd, enabled, action, angleReq):
 def create_steer_command_lka(packer, angle_cmd, enabled, curvature):
   """Creates a CAN message for the Ford Steer Command."""
 
-  print("LKA_Control: enable " + str(enabled) + " angle " + str(angle_cmd) + " action " + str(action) + " alert " + str(alert))
+  print("LKA_Control: enable " + str(enabled) + " angle " + str(angle_cmd))
 
   values = {
     "Lkas_Action": 5,
