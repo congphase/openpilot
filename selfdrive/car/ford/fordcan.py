@@ -24,14 +24,14 @@ def create_steer_command(packer, angle_cmd, enabled, action, angleReq):
   }
   return packer.make_can_msg("ParkAid_Data", 2, values)
 
-def create_steer_command_lka(packer, angle_cmd, enabled, action, alert, curvature):
+def create_steer_command_lka(packer, angle_cmd, enabled, curvature):
   """Creates a CAN message for the Ford Steer Command."""
 
   print("LKA_Control: enable " + str(enabled) + " angle " + str(angle_cmd) + " action " + str(action) + " alert " + str(alert))
 
   values = {
-    "Lkas_Action": action,
-    "Lkas_Alert": alert,
+    "Lkas_Action": 5,
+    "Lkas_Alert": 15,
     "Lane_Curvature": curvature, # is it just for debug?
     "Steer_Angle_Req": angle_cmd # milliradian
   }

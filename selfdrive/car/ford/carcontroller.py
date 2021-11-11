@@ -140,19 +140,18 @@ class CarController():
             angle_rate_lim = interp(CS.out.vEgo, CarControllerParams.ANGLE_DELTA_BP, CarControllerParams.ANGLE_DELTA_VU)
           
           apply_steer = clip(apply_steer, self.lastAngle - angle_rate_lim, self.lastAngle + angle_rate_lim) 
-          action = 5
         else:
           apply_steer = CS.out.steeringAngleDeg
-          action = 7
         self.lastAngle = apply_steer
-        # can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
-        if left_lane_depart or right_lane_depart:
-          alert = 3
-        else:
-          alert = 15
+        
+        # Use ParkAid commands
+        can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
+
+        # Use LKA commands
         apply_steer_mrad = math.radians(apply_steer) * 1000
         curvature = self.vehicle_model.calc_curvature(apply_steer_mrad, CS.out.vEgo)
-        can_sends.append(create_steer_command_lka(self.packer, apply_steer_mrad, enabled, action, alert, curvature))
+        can_sends.append(create_steer_command_lka(self.packer, apply_steer_mrad, enabled, curvature))
+
         self.generic_toggle_last = CS.out.genericToggle
       if (frame % 1) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or (self.steer_alert_last != steer_alert):
         lines = 0
