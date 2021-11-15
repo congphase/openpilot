@@ -1,6 +1,3 @@
-from common.numpy_fast import clip
-from selfdrive.car.ford.values import MAX_ANGLE
-from cereal import car
 import math
 
 def fordchecksum(cnt, speed):
@@ -22,7 +19,7 @@ def create_steer_command(packer, angle_cmd, enabled, action, angleReq):
     "EPASExtAngleStatReq": angleReq,
     "ExtSteeringAngleReq2": angle_cmd, # degree
   }
-  return packer.make_can_msg("ParkAid_Data", 2, values)
+  return packer.make_can_msg("ParkAid_Data", 1, values)
 
 def create_steer_command_lka(packer, angle_cmd, enabled, vehicle_model, vEgo):
   """Creates a CAN message for the Ford Steer Command."""
