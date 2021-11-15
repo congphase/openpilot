@@ -1,10 +1,8 @@
 from cereal import car
 from common.numpy_fast import interp, clip
-from selfdrive.car import make_can_msg
-from selfdrive.car.ford.fordcan import create_steer_command, create_steer_command_lka, create_speed_command, create_speed_command2, create_lkas_ui, create_accdata, create_accdata2, create_accdata3, create_steer_command_lka, spam_cancel_button
-from selfdrive.car.ford.values import CAR, CarControllerParams
+from selfdrive.car.ford.fordcan import create_steer_command, create_speed_command, create_speed_command2, create_lkas_ui, create_accdata, create_accdata2, create_accdata3, spam_cancel_button
+from selfdrive.car.ford.values import CarControllerParams
 from opendbc.can.packer import CANPacker
-from selfdrive.config import Conversions as CV
 
 MAX_STEER_DELTA = 0.2
 TOGGLE_DEBUG = False
@@ -97,7 +95,7 @@ class CarController():
             self.acc_decel_command = 1
           else:
             self.acc_decel_command = 0
-          print("Brake Actuator:", brake, "Gas Actuator:", actuator_gas, "Clipped Brake:", apply_brake, "Clipped Gas:", apply_gas)
+          #print("Brake Actuator:", brake, "Gas Actuator:", actuator_gas, "Clipped Brake:", apply_brake, "Clipped Gas:", apply_gas)
           can_sends.append(create_accdata(self.packer, enabled, apply_gas, apply_brake, self.acc_decel_command, self.desiredSpeed, self.stopStat))
           can_sends.append(create_accdata2(self.packer, enabled, frame, 0, 0, 0, 0, 0))
           can_sends.append(create_accdata3(self.packer, enabled, 1, 3, lead, 2))
@@ -141,13 +139,17 @@ class CarController():
           apply_steer = clip(apply_steer, self.lastAngle - angle_rate_lim, self.lastAngle + angle_rate_lim) 
         else:
           apply_steer = CS.out.steeringAngleDeg
+          # Hardcode for testing only
+          apply_steer = self.lastAngle + 20
+          self.sappState = 2
+          self.angleReq = 1
         self.lastAngle = apply_steer
         
         # Use ParkAid commands
-        # can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
+        can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
 
         # Use LKA commands
-        can_sends.append(create_steer_command_lka(self.packer, apply_steer, enabled, self.vehicle_model, CS.out.vEgo))
+        # can_sends.append(create_steer_command_lka(self.packer, apply_steer, enabled, self.vehicle_model, CS.out.vEgo))
 
         self.generic_toggle_last = CS.out.genericToggle
       if (frame % 1) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or (self.steer_alert_last != steer_alert):
