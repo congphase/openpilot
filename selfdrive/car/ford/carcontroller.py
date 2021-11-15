@@ -140,6 +140,8 @@ class CarController():
         else:
           apply_steer = CS.out.steeringAngleDeg
           # Hardcode for testing only
+          if (apply_steer == 360):
+            apply_steer = 0
           apply_steer = self.lastAngle + 20
           self.sappState = 2
           self.angleReq = 1
