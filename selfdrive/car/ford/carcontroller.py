@@ -139,12 +139,6 @@ class CarController():
           apply_steer = clip(apply_steer, self.lastAngle - angle_rate_lim, self.lastAngle + angle_rate_lim) 
         else:
           apply_steer = CS.out.steeringAngleDeg
-          # Hardcode for testing only
-          apply_steer = self.lastAngle - 20
-          if (apply_steer <= -360):
-            apply_steer = 0
-          self.sappState = 2
-          self.angleReq = 1
         self.lastAngle = apply_steer
         
         # Use ParkAid commands
