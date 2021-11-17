@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 from cereal import car
-from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
 #from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.car.ford.values import MAX_ANGLE, CAR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
-from common.params import Params
 
 class CarInterface(CarInterfaceBase):
 
@@ -94,7 +92,7 @@ class CarInterface(CarInterfaceBase):
                                                                          tire_stiffness_factor=tire_stiffness_factor)
 
     ret.steerControlType = car.CarParams.SteerControlType.angle
-    ret.openpilotLongitudinalControl = True
+    ret.openpilotLongitudinalControl = False
 
     return ret
 
