@@ -142,7 +142,7 @@ class CarController():
         self.lastAngle = apply_steer
         
         # Use ParkAid commands
-        print("Control: " + str(self.steerAllowed) + "Angle: " + str(apply_steer) + "Speed: " + str(CS.out.vEgo) + "Hand-off: " + str(CS.out.steeringPressed))
+        print("Steer Allow: " + str(self.steerAllowed) + " Angle: " + str(apply_steer) + " Speed: " + str(CS.out.vEgo) + " Handshake: " + str(CS.sappHandshake in [1,2]))
         can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
 
         # Use LKA commands
