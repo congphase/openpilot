@@ -19,7 +19,7 @@ def create_steer_command(packer, angle_cmd, enabled, action, angleReq):
     "EPASExtAngleStatReq": angleReq,
     "ExtSteeringAngleReq2": angle_cmd, # degree
   }
-  return packer.make_can_msg("ParkAid_Data", 0, values)
+  return packer.make_can_msg("ParkAid_Data", 2, values)
 
 def create_steer_command_lka(packer, angle_cmd, enabled, vehicle_model, vEgo):
   """Creates a CAN message for the Ford Steer Command."""
@@ -57,7 +57,7 @@ def create_speed_command(packer, enabled, frame, speed, gear, frame_step):
     "GearRvrse_D_Actl": reverse,
     "Veh_V_ActlEng": speed,
   }
-  return packer.make_can_msg("EngVehicleSpThrottle2", 0, values)
+  return packer.make_can_msg("EngVehicleSpThrottle2", 2, values)
 
 def create_speed_command2(packer, enabled, frame, speed, frame_step):
   """Creates a CAN message for the Ford Speed Command."""
@@ -71,7 +71,7 @@ def create_speed_command2(packer, enabled, frame, speed, frame_step):
     "VehVActlBrk_No_Cnt": cnt,
     "VehVActlBrk_D_Qf": 3,
   }
-  return packer.make_can_msg("BrakeSysFeatures", 0, values)
+  return packer.make_can_msg("BrakeSysFeatures", 2, values)
 
 def create_lkas_ui(packer, main_on, enabled, steer_alert, defog, ahbc, ahbcramping, config, noipma, stats, persipma, dasdsply, x30, daschime, lines):
   """Creates a CAN message for the Ford Steer Ui."""
