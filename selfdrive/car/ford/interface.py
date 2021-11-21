@@ -71,7 +71,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerLimitTimer = 0.8
       ret.steerRateCost = 1.0
       ret.centerToFront = ret.wheelbase * 0.44
-      ret.minSteerSpeed = 0
+      ret.minSteerSpeed = 0.3
       tire_stiffness_factor = 0.5328
     
     #INDI tuning TODO: Tune
