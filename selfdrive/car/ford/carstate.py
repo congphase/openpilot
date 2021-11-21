@@ -2,7 +2,7 @@ from cereal import car
 from opendbc.can.parser import CANParser
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.ford.values import DBC, SPEED_FACTOR
+from selfdrive.car.ford.values import DBC
 
  #WHEEL_RADIUS = 0.33
 GearShifter = car.CarState.GearShifter
@@ -10,7 +10,7 @@ GearShifter = car.CarState.GearShifter
 class CarState(CarStateBase):
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
-    speed_factor = SPEED_FACTOR[self.CP.carFingerprint]
+    # speed_factor = SPEED_FACTOR[self.CP.carFingerprint]
     #ret.wheelSpeeds.rr = cp.vl["WheelSpeed"]['WhlRr_W_Meas'] * CV.MPH_TO_MS
     #ret.wheelSpeeds.rl = cp.vl["WheelSpeed"]['WhlRl_W_Meas'] * CV.MPH_TO_MS
     #ret.wheelSpeeds.fr = cp.vl["WheelSpeed"]['WhlFr_W_Meas'] * CV.MPH_TO_MS
@@ -20,7 +20,9 @@ class CarState(CarStateBase):
     ret.standstill = not ret.vEgoRaw > 0.001
     ret.steeringAngleDeg = cp.vl["BrakeSnData_5"]['SteWhlRelInit_An_Sns']
     ret.steeringPressed = cp_cam.vl["Lane_Keep_Assist_Status"]['LaHandsOff_B_Actl'] == 0
-    ret.steerError = cp_cam.vl["Lane_Keep_Assist_Status"]['LaActDeny_B_Actl'] == 1
+    ret.steerWarning = False
+    ret.steerError = False # temporary disable it because do not use lka
+    # ret.steerError = cp_cam.vl["Lane_Keep_Assist_Status"]['LaActDeny_B_Actl'] == 1
     ret.cruiseState.speed = cp.vl["Cruise_Status"]['Set_Speed'] * CV.MPH_TO_MS
     ret.cruiseState.enabled = not (cp.vl["Cruise_Status"]['Cruise_State'] in [0, 3])
     ret.cruiseState.available = cp.vl["Cruise_Status"]['Cruise_State'] != 0
@@ -140,4 +142,4 @@ class CarState(CarStateBase):
     ]
 
     checks = [] 
-    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2, False)
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)

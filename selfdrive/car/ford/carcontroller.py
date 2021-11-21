@@ -79,6 +79,7 @@ class CarController():
         self.steerAllowed = True
       else:
         self.steerAllowed = False
+      self.steerAllowed = True
       if CS.epsAssistLimited:
         print("PSCM Assist Limited")
       #op Long (Buggy)
@@ -142,7 +143,13 @@ class CarController():
         self.lastAngle = apply_steer
         
         # Use ParkAid commands
-        print("Steer Allow: " + str(self.steerAllowed) + " Angle: " + str(apply_steer) + " Speed: " + str(CS.out.vEgo) + " Handshake: " + str(CS.sappHandshake in [1,2]))
+        print(
+          "steerAllowed: "  + str(self.steerAllowed) + " " +
+          "sappHandshake: " + str(CS.sappHandshake) + " " +
+          "Speed: "         + str(CS.out.vEgo) + " " +
+          "Current: "       + str(CS.out.steeringAngleDeg) + " " +
+          "Request: "       + str(apply_steer)
+        )
         can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
 
         # Use LKA commands
