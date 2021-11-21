@@ -21,8 +21,7 @@ class CarState(CarStateBase):
     ret.steeringAngleDeg = cp.vl["BrakeSnData_5"]['SteWhlRelInit_An_Sns']
     ret.steeringPressed = cp_cam.vl["Lane_Keep_Assist_Status"]['LaHandsOff_B_Actl'] == 0
     ret.steerWarning = False
-    ret.steerError = False # temporary disable it because do not use lka
-    # ret.steerError = cp_cam.vl["Lane_Keep_Assist_Status"]['LaActDeny_B_Actl'] == 1
+    ret.steerError = cp_cam.vl["Lane_Keep_Assist_Status"]['LaActDeny_B_Actl'] == 1
     ret.cruiseState.speed = cp.vl["Cruise_Status"]['Set_Speed'] * CV.MPH_TO_MS
     ret.cruiseState.enabled = not (cp.vl["Cruise_Status"]['Cruise_State'] in [0, 3])
     ret.cruiseState.available = cp.vl["Cruise_Status"]['Cruise_State'] != 0
@@ -142,4 +141,4 @@ class CarState(CarStateBase):
     ]
 
     checks = [] 
-    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2)

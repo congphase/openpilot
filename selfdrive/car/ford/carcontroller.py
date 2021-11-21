@@ -1,6 +1,6 @@
 from cereal import car
 from common.numpy_fast import interp, clip
-from selfdrive.car.ford.fordcan import create_steer_command, create_speed_command, create_speed_command2, create_lkas_ui, create_accdata, create_accdata2, create_accdata3, spam_cancel_button
+from selfdrive.car.ford.fordcan import create_steer_command, create_speed_command, create_speed_command2, create_accdata, create_accdata2, create_accdata3, spam_cancel_button
 from selfdrive.car.ford.values import CarControllerParams
 from opendbc.can.packer import CANPacker
 
@@ -145,6 +145,7 @@ class CarController():
         # Use ParkAid commands
         print(
           "steerAllowed: "  + str(self.steerAllowed) + " " +
+          "steerError: "    + str(CS.out.steerError) + " " +
           "sappHandshake: " + str(CS.sappHandshake) + " " +
           "Speed: "         + str(CS.out.vEgo) + " " +
           "Current: "       + str(CS.out.steeringAngleDeg) + " " +
@@ -157,26 +158,26 @@ class CarController():
 
         self.generic_toggle_last = CS.out.genericToggle
       if (frame % 1) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or (self.steer_alert_last != steer_alert):
-        lines = 0
-        if left_line and right_line:
-          if left_lane_depart:
-            lines = 9
-          elif right_lane_depart:
-            lines = 21
-          else:
-            lines = 6
-        elif left_line and not right_line:
-          if left_lane_depart:
-            lines = 14
-          else:
-            lines = 11
-        elif right_line and not left_line:
-          if right_lane_depart:
-            lines = 22
-          else:
-            lines = 7
-        else:
-          lines = 12  
+        # lines = 0
+        # if left_line and right_line:
+        #   if left_lane_depart:
+        #     lines = 9
+        #   elif right_lane_depart:
+        #     lines = 21
+        #   else:
+        #     lines = 6
+        # elif left_line and not right_line:
+        #   if left_lane_depart:
+        #     lines = 14
+        #   else:
+        #     lines = 11
+        # elif right_line and not left_line:
+        #   if right_lane_depart:
+        #     lines = 22
+        #   else:
+        #     lines = 7
+        # else:
+        #   lines = 12  
                 
         if steer_alert:
           self.steer_chime = 1
@@ -184,7 +185,7 @@ class CarController():
         else:
           self.steer_chime = 0
           self.daschime = 0
-        can_sends.append(create_lkas_ui(self.packer, CS.out.cruiseState.available, enabled, self.steer_chime, CS.ipmaHeater, CS.ahbcCommanded, CS.ahbcRamping, CS.ipmaConfig, CS.ipmaNo, CS.ipmaStats, CS.persipma, CS.dasdsply, CS.x30, self.daschime, lines))
+        # can_sends.append(create_lkas_ui(self.packer, CS.out.cruiseState.available, enabled, self.steer_chime, CS.ipmaHeater, CS.ahbcCommanded, CS.ahbcRamping, CS.ipmaConfig, CS.ipmaNo, CS.ipmaStats, CS.persipma, CS.dasdsply, CS.x30, self.daschime, lines))
         self.enabled_last = enabled                         
       self.steer_alert_last = steer_alert
 
