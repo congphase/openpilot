@@ -146,7 +146,7 @@ class CarController():
         print(
           "steerAllowed: {:d} ".format(self.steerAllowed) +
           "steerError: {:d} ".format(CS.out.steerError) + 
-          "handshake: {:d} ".format(CS.sappHandshake)  +
+          "handshake: {:.0f} ".format(CS.sappHandshake)  +
           "speed: {:.2f} ".format(CS.out.vEgo * CV.MPH_TO_KPH) +
           "steerAngle: {:.2f} ".format(CS.out.steeringAngleDeg) +
           "steerRequest: {:.2f} ".format(apply_steer - CS.out.steeringAngleDeg)
