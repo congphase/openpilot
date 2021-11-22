@@ -2,6 +2,7 @@ from cereal import car
 from common.numpy_fast import interp, clip
 from selfdrive.car.ford.fordcan import create_steer_command, create_speed_command, create_speed_command2, create_accdata, create_accdata2, create_accdata3, spam_cancel_button
 from selfdrive.car.ford.values import CarControllerParams
+from selfdrive.config import Conversions as CV
 from opendbc.can.packer import CANPacker
 
 MAX_STEER_DELTA = 0.2
@@ -144,12 +145,12 @@ class CarController():
         
         # Use ParkAid commands
         print(
-          "steerAllowed: "  + str(self.steerAllowed) + " " +
-          "steerError: "    + str(CS.out.steerError) + " " +
-          "sappHandshake: " + str(CS.sappHandshake) + " " +
-          "Speed: "         + str(CS.out.vEgo) + " " +
-          "Current: "       + str(CS.out.steeringAngleDeg) + " " +
-          "Request: "       + str(apply_steer)
+          "steerAllowed: {:d} ".format(self.steerAllowed) +
+          "steerError: {:d} ".format(CS.out.steerError) + 
+          "handshake: {:d} ".format(CS.sappHandshake)  +
+          "speed: {:.2f} ".format(CS.out.vEgo * CV.MPH_TO_KPH) +
+          "steerAngle: {:.2f} ".format(CS.out.steeringAngleDeg) +
+          "steerRequest: {:.2f} ".format(apply_steer - CS.out.steeringAngleDeg)
         )
         can_sends.append(create_steer_command(self.packer, apply_steer, enabled, self.sappState, self.angleReq))
 
