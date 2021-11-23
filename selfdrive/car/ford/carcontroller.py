@@ -96,7 +96,13 @@ class CarController():
             self.acc_decel_command = 1
           else:
             self.acc_decel_command = 0
-          #print("Brake Actuator:", brake, "Gas Actuator:", actuator_gas, "Clipped Brake:", apply_brake, "Clipped Gas:", apply_gas)
+          print(
+            "Accel: {:.3f} ".format(actuators.accel) +
+            "Brake: {:.3f} ".format(brake) + 
+            "Gas: {:.3f} ".format(actuator_gas)  +
+            "Clipped Brake: {:.3f} ".format(apply_brake) +
+            "Clipped Gas: {:.3f} ".format(apply_gas)
+          )
           can_sends.append(create_accdata(self.packer, enabled, apply_gas, apply_brake, self.acc_decel_command, self.desiredSpeed, self.stopStat))
           can_sends.append(create_accdata2(self.packer, enabled, frame, 0, 0, 0, 0, 0))
           can_sends.append(create_accdata3(self.packer, enabled, 1, 3, lead, 2))
